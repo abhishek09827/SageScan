@@ -1,0 +1,123 @@
+version: "1.0"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Dataset : Airbnb NYC Listings (Inside Airbnb)
+# Source  : https://data.insideairbnb.com/united-states/ny/new-york-city/2024-09-04/visualisations/listings.csv
+# Columns : id, name, host_id, host_name, neighbourhood_group, neighbourhood,
+#            latitude, longitude, room_type, price, minimum_nights,
+#            number_of_reviews, last_review, reviews_per_month,
+#            calculated_host_listings_count, availability_365
+# ─────────────────────────────────────────────────────────────────────────────
+
+source:
+  type: csv
+  path: examples/data/airbnb_listings.csv
+
+rules:
+
+  # ── Listing identity ───────────────────────────────────────────────────────
+  - column: id
+    checks:
+      - type: not_null
+      - type: unique
+      - type: min_value
+        value: 1
+
+  - column: name
+    checks:
+      - type: null_percentage
+        value: 2.0               # Very few listings lack a name
+      - type: min_length
+        value: 3
+      - type: max_length
+        value: 255
+
+  # ── Host ──────────────────────────────────────────────────────────────────
+  - column: host_id
+    checks:
+      - type: not_null
+      - type: min_value
+        value: 1
+
+  - column: host_name
+    checks:
+      - type: null_percentage
+        value: 1.0
+
+  # ── Location ──────────────────────────────────────────────────────────────
+  - column: neighbourhood_group
+    checks:
+      - type: not_null
+      - type: allowed_values
+        values: [Manhattan, Brooklyn, Queens, Bronx, Staten Island]
+
+  - column: latitude
+    checks:
+      - type: not_null
+      - type: range             # NYC bounding box
+        min: 40.4774
+        max: 40.9176
+
+  - column: longitude
+    checks:
+      - type: not_null
+      - type: range             # NYC bounding box
+        min: -74.2591
+        max: -73.7004
+
+  # ── Room type ─────────────────────────────────────────────────────────────
+  - column: room_type
+    checks:
+      - type: not_null
+      - type: allowed_values
+        values:
+          - Entire home/apt
+          - Private room
+          - Shared room
+          - Hotel room
+
+  # ── Price ─────────────────────────────────────────────────────────────────
+  - column: price
+    checks:
+      - type: not_null
+      - type: min_value
+        value: 1                  # $0 listings are invalid / inactive
+      - type: max_value
+        value: 25000              # Anything above $25k/night is an outlier
+      - type: z_score
+        value: 4.0                # Luxury listings exist; use a generous threshold
+      - type: mean_check
+        min: 50
+        max: 500                  # NYC avg is ~$180; allow wide band
+
+  # ── Availability ──────────────────────────────────────────────────────────
+  - column: minimum_nights
+    checks:
+      - type: not_null
+      - type: min_value
+        value: 1
+      - type: max_value
+        value: 365
+
+  - column: availability_365
+    checks:
+      - type: not_null
+      - type: range
+        min: 0
+        max: 365
+
+  # ── Reviews ───────────────────────────────────────────────────────────────
+  - column: number_of_reviews
+    checks:
+      - type: not_null
+      - type: min_value
+        value: 0
+
+  - column: reviews_per_month
+    checks:
+      - type: null_percentage    # New listings have no reviews yet → nulls expected
+        value: 40.0
+      - type: range
+        min: 0.0
+        max: 60.0                 # > 60 reviews/month is impossible
+

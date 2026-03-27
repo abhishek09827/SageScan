@@ -1,0 +1,23 @@
+version: "1.0"
+source:
+  type: "csv"
+  path: "examples/sample_data.csv"
+
+rules:
+  - column: "user_id"
+    checks:
+      - type: "not_null"
+      - type: "unique"
+
+  - column: "age"
+    checks:
+      - type: "not_null"
+      - type: "range"
+        min: 18
+        max: 120
+
+  - column: "email"
+    checks:
+      - type: "not_null"
+      - type: "regex"
+        value: "^[^@]+@[^@]+\\.[^@]+$"

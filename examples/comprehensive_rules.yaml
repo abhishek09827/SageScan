@@ -1,0 +1,65 @@
+version: "1.0"
+source:
+  type: "csv"
+  path: "examples/sample_data.csv"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Comprehensive SageScan rules example — showcases every built-in check type.
+# ──────────────────────────────────────────────────────────────────────────────
+
+rules:
+  # ── Presence & identity ───────────────────────────────────────────────────
+  - column: "user_id"
+    checks:
+      - type: "not_null"           # No nulls allowed
+      - type: "unique"             # No duplicates (subsequent duplicates flagged)
+
+  # ── Numeric range & statistics ────────────────────────────────────────────
+  - column: "age"
+    checks:
+      - type: "not_null"
+      - type: "range"              # Combined min + max in one check
+        min: 18
+        max: 120
+      - type: "mean_check"         # Column mean must be in [20, 80]
+        min: 20
+        max: 80
+      - type: "std_check"          # Column std must be < 30
+        max: 30
+      - type: "z_score"            # Flag values with |z| > 3
+        value: 3.0
+
+  # ── String quality ────────────────────────────────────────────────────────
+  - column: "email"
+    checks:
+      - type: "not_null"
+      - type: "regex"              # Full pattern match
+        value: "^[^@]+@[^@]+\\.[^@]+$"
+      - type: "min_length"         # Must have at least 5 characters
+        value: 5
+      - type: "max_length"         # No longer than 254 characters (RFC 5321)
+        value: 254
+      - type: "null_percentage"    # At most 1% missing emails tolerated
+        value: 1.0
+
+  # ── Categorical / enumeration ─────────────────────────────────────────────
+  - column: "status"
+    checks:
+      - type: "not_null"
+      - type: "allowed_values"     # Only these exact values are valid
+        values: ["active", "inactive", "pending", "banned"]
+
+  # ── Distribution drift (requires a reference file) ────────────────────────
+  # Uncomment when you have a reference dataset:
+  #
+  # - column: "score"
+  #   checks:
+  #     - type: "ks_test"
+  #       reference_type: "file"
+  #       reference_path: "examples/reference_data.csv"
+  #       alpha: 0.05              # significance level
+  #     - type: "psi"
+  #       reference_type: "file"
+  #       reference_path: "examples/reference_data.csv"
+  #       threshold: 0.2           # PSI > 0.2 = significant drift
+

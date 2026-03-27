@@ -1,0 +1,24 @@
+context: ""
+metadata:
+    author: SageScan
+    created_at: "2024-01-01"
+    description: Default SageScan configuration
+rules:
+    - checks:
+        - type: not_null
+        - type: unique
+      column: id
+    - checks:
+        - type: not_null
+        - type: min_length
+          value: 1
+      column: name
+    - checks:
+        - type: not_null
+        - type: pattern
+          value: ^[^@]+@[^@]+$
+      column: email
+source:
+    path: data/sample.csv
+    type: csv
+version: "1.0"

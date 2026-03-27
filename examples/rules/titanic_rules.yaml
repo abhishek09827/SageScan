@@ -1,0 +1,102 @@
+version: "1.0"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Dataset : Titanic passenger manifest
+# Source  : https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv
+# Columns : PassengerId, Survived, Pclass, Name, Sex, Age, SibSp, Parch,
+#            Ticket, Fare, Cabin, Embarked
+# ─────────────────────────────────────────────────────────────────────────────
+
+source:
+  type: csv
+  path: examples/data/titanic.csv
+
+rules:
+
+  # ── Identity ──────────────────────────────────────────────────────────────
+  - column: PassengerId
+    checks:
+      - type: not_null
+      - type: unique
+      - type: min_value
+        value: 1
+
+  # ── Survival flag (0 or 1 only) ───────────────────────────────────────────
+  - column: Survived
+    checks:
+      - type: not_null
+      - type: allowed_values
+        values: [0, 1]
+
+  # ── Ticket class (1 = First, 2 = Second, 3 = Third) ─────────────────────
+  - column: Pclass
+    checks:
+      - type: not_null
+      - type: allowed_values
+        values: [1, 2, 3]
+
+  # ── Passenger name ────────────────────────────────────────────────────────
+  - column: Name
+    checks:
+      - type: not_null
+      - type: min_length
+        value: 2
+      - type: max_length
+        value: 100
+
+  # ── Sex ───────────────────────────────────────────────────────────────────
+  - column: Sex
+    checks:
+      - type: not_null
+      - type: allowed_values
+        values: [male, female]
+
+  # ── Age ── real-world nulls expected (~20%), outlier check important ──────
+  - column: Age
+    checks:
+      - type: null_percentage   # Titanic has ~20% missing ages → allow up to 25%
+        value: 25.0
+      - type: range
+        min: 0.1
+        max: 100.0
+      - type: mean_check        # Real mean is ~29 years
+        min: 20.0
+        max: 45.0
+      - type: z_score           # Flag implausible ages
+        value: 3.5
+
+  # ── Siblings / Spouses aboard ─────────────────────────────────────────────
+  - column: SibSp
+    checks:
+      - type: not_null
+      - type: range
+        min: 0
+        max: 10
+
+  # ── Parents / Children aboard ─────────────────────────────────────────────
+  - column: Parch
+    checks:
+      - type: not_null
+      - type: range
+        min: 0
+        max: 10
+
+  # ── Fare paid ─────────────────────────────────────────────────────────────
+  - column: Fare
+    checks:
+      - type: not_null
+      - type: min_value
+        value: 0.0
+      - type: max_value
+        value: 600.0             # Real max is ~512; 600 gives headroom
+      - type: z_score
+        value: 3.5               # A few very expensive first-class tickets exist
+
+  # ── Port of embarkation (C=Cherbourg, Q=Queenstown, S=Southampton) ────────
+  - column: Embarked
+    checks:
+      - type: null_percentage    # 2 records have missing embarkation
+        value: 5.0
+      - type: allowed_values
+        values: [C, Q, S]
+

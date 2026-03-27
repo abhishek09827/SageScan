@@ -1,0 +1,9 @@
+user_id,age,email,status
+1,25,alice@example.com,active
+2,17,bob@example.com,inactive
+3,30,charlie@example.com,active
+3,40,duplicate@example.com,pending
+5,,missing_age@example.com,active
+6,22,valid@example.com,banned
+7,35,another@example.com,active
+
