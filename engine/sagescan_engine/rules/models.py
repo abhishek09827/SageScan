@@ -42,3 +42,6 @@ class SageScanConfig(BaseModel):
     llm_api_key: Optional[str] = None
     llm_model: Optional[str] = None
     llm_max_tokens: Optional[int] = None
+    llm_base_url: Optional[str] = None
+    llm_temperature: Optional[float] = None
+

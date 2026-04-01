@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/sagescan/sagescan/internal/python"
@@ -68,7 +69,12 @@ func (pc *ProfileCommand) Run(cmd *cobra.Command, args []string) error {
 		cfg["context"] = pc.GetContext()
 	}
 
-	engine := python.NewEngine("python", "")
+	// Use SAGESCAN_PYTHON env var if set, otherwise default to "python"
+	pythonPath := os.Getenv("SAGESCAN_PYTHON")
+	if pythonPath == "" {
+		pythonPath = "python"
+	}
+	engine := python.NewEngine(pythonPath, "")
 	ctx, cancel := context.WithTimeout(context.Background(), pc.GetTimeout())
 	defer cancel()
 

@@ -15,8 +15,10 @@ type GenerateRulesCommand struct {
 	*BaseCommand
 	inputFile  string
 	outputFile string
-	llmAPIKey  string
-	llmModel   string
+	llmAPIKey      string
+	llmModel       string
+	llmBaseURL     string
+	llmTemperature float32
 }
 
 // NewGenerateRulesCommand creates a new generate-rules command
@@ -46,6 +48,8 @@ Examples:
 	cmd.Flags().StringVarP(&grc.outputFile, "output", "o", "", "Output rules file path (required)")
 	cmd.Flags().StringVar(&grc.llmAPIKey, "llm-api-key", "", "OpenAI-compatible API key (overrides OPENAI_API_KEY env var)")
 	cmd.Flags().StringVar(&grc.llmModel, "llm-model", "gpt-4o", "LLM model to use for rule generation")
+	cmd.Flags().StringVar(&grc.llmBaseURL, "llm-base-url", "", "Custom API base URL for self-hosted or local LLMs")
+	cmd.Flags().Float32Var(&grc.llmTemperature, "llm-temperature", 0.3, "Temperature setting for LLM generation")
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 		return grc.Run(cmd, args)
@@ -91,13 +95,22 @@ func (grc *GenerateRulesCommand) Run(cmd *cobra.Command, args []string) error {
 			"type": "csv",
 			"path": grc.inputFile,
 		},
-		"output_file":  grc.outputFile,
-		"context":      grc.GetContext(),
-		"llm_api_key":  apiKey,
-		"llm_model":    grc.llmModel,
+		"output_file": grc.outputFile,
+		"context":     grc.GetContext(),
+		"llm_api_key":     apiKey,
+		"llm_model":       grc.llmModel,
+		"llm_temperature": grc.llmTemperature,
+	}
+	if grc.llmBaseURL != "" {
+		cfg["llm_base_url"] = grc.llmBaseURL
 	}
 
-	engine := python.NewEngine("python", "")
+	// Use SAGESCAN_PYTHON env var if set, otherwise default to "python"
+	pythonPath := os.Getenv("SAGESCAN_PYTHON")
+	if pythonPath == "" {
+		pythonPath = "python"
+	}
+	engine := python.NewEngine(pythonPath, "")
 	ctx, cancel := context.WithTimeout(context.Background(), grc.GetTimeout())
 	defer cancel()
 

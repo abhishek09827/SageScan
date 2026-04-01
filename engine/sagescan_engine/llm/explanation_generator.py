@@ -48,7 +48,7 @@ class ExplanationGenerator:
     generic messages, tied to actual data behavior and statistics.
     """
 
-    def __init__(self, api_key: str, model: str = "gpt-4", max_tokens: int = 1000):
+    def __init__(self, api_key: str, model: str = "gpt-4", max_tokens: int = 1000, base_url: Optional[str] = None, temperature: float = 0.5):
         """
         Initialize the explanation generator.
         
@@ -56,10 +56,14 @@ class ExplanationGenerator:
             api_key: API key for the LLM provider
             model: Model name to use
             max_tokens: Maximum tokens for response
+            base_url: Custom API base URL
+            temperature: LLM generation temperature
         """
         self.api_key = api_key
         self.model = model
         self.max_tokens = max_tokens
+        self.base_url = base_url
+        self.temperature = temperature
 
     def _build_explanation_prompt(
         self,
@@ -145,7 +149,10 @@ Explain WHY the validation failed and WHAT this means for the data. Avoid generi
         except ImportError:
             raise ImportError("OpenAI package is required. Install with: pip install openai")
         
-        client = openai.OpenAI(api_key=self.api_key)
+        client_kwargs = {"api_key": self.api_key}
+        if self.base_url:
+            client_kwargs["base_url"] = self.base_url
+        client = openai.OpenAI(**client_kwargs)
         
         try:
             response = client.chat.completions.create(
@@ -155,7 +162,7 @@ Explain WHY the validation failed and WHAT this means for the data. Avoid generi
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=self.max_tokens,
-                temperature=0.5  # Moderate temperature for balanced explanations
+                temperature=self.temperature  # Moderate temperature for balanced explanations
             )
             
             return response.choices[0].message.content

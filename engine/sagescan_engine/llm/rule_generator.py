@@ -46,7 +46,7 @@ class LLMRuleGenerator:
     and production-ready rule generation.
     """
 
-    def __init__(self, api_key: str, model: str = "gpt-4", max_tokens: int = 2000):
+    def __init__(self, api_key: str, model: str = "gpt-4", max_tokens: int = 2000, base_url: Optional[str] = None, temperature: float = 0.3):
         """
         Initialize the rule generator.
         
@@ -54,10 +54,14 @@ class LLMRuleGenerator:
             api_key: API key for the LLM provider
             model: Model name to use
             max_tokens: Maximum tokens for response
+            base_url: Custom API base URL
+            temperature: LLM generation temperature
         """
         self.api_key = api_key
         self.model = model
         self.max_tokens = max_tokens
+        self.base_url = base_url
+        self.temperature = temperature
 
     # Column names whose top-values must never be sent to the LLM.
     _PII_COLUMN_PATTERNS = _re.compile(
@@ -267,7 +271,10 @@ Return a valid YAML configuration for SageScan with a single top-level "rules" k
         except ImportError:
             raise ImportError("OpenAI package is required. Install with: pip install openai")
 
-        client = openai.OpenAI(api_key=self.api_key)
+        client_kwargs = {"api_key": self.api_key}
+        if self.base_url:
+            client_kwargs["base_url"] = self.base_url
+        client = openai.OpenAI(**client_kwargs)
         last_exc: Optional[Exception] = None
 
         for attempt in range(1, self._MAX_RETRIES + 1):
@@ -280,7 +287,7 @@ Return a valid YAML configuration for SageScan with a single top-level "rules" k
                         {"role": "user", "content": prompt},
                     ],
                     max_tokens=self.max_tokens,
-                    temperature=0.3,
+                    temperature=self.temperature,
                     response_format={"type": "text"},
                 )
                 latency_ms = (time.monotonic() - t0) * 1000

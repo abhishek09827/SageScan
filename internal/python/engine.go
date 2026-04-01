@@ -24,9 +24,11 @@ type Config struct {
 	Rules        []map[string]interface{} `json:"rules"`
 	Context      string                   `json:"context,omitempty"`
 	Baseline     string                   `json:"baseline,omitempty"`
-	LLMAPIKey    string                   `json:"llm_api_key,omitempty"`
-	LLMModel     string                   `json:"llm_model,omitempty"`
-	LLMMaxTokens int                      `json:"llm_max_tokens,omitempty"`
+	LLMAPIKey      string                   `json:"llm_api_key,omitempty"`
+	LLMModel       string                   `json:"llm_model,omitempty"`
+	LLMMaxTokens   int                      `json:"llm_max_tokens,omitempty"`
+	LLMBaseURL     string                   `json:"llm_base_url,omitempty"`
+	LLMTemperature float32                  `json:"llm_temperature,omitempty"`
 }
 
 // Result represents the validation result
@@ -93,6 +95,14 @@ func (e *Engine) RunValidation(config Config) (*Result, error) {
 	}
 
 	if runErr != nil {
+		// If it's an ExitError, the script ran but returned non-zero.
+		// It might have still produced valid JSON output (e.g. status FAIL).
+		if _, isExitErr := runErr.(*exec.ExitError); isExitErr && stdout.Len() > 0 {
+			if result, parseErr := e.parseOutput(stdout.Bytes()); parseErr == nil {
+				return result, nil // Return the parsed result despite exit status 1
+			}
+		}
+
 		return &Result{
 			Status: "ERROR",
 			Error:  fmt.Sprintf("execution failed (%v): %s", runErr, stderr.String()),
@@ -120,7 +130,21 @@ func (e *Engine) RunCommand(ctx context.Context, commandName string, payload int
 
 	enginePath := e.resolveEnginePath()
 
-	cmd := exec.CommandContext(ctx, e.pythonPath, enginePath)
+	// Resolve relative python path to absolute path only if it looks like a path
+	pythonPath := e.pythonPath
+	if !filepath.IsAbs(pythonPath) && (strings.Contains(pythonPath, string(filepath.Separator)) || strings.Contains(pythonPath, "/")) {
+		if absPath, err := filepath.Abs(pythonPath); err == nil {
+			pythonPath = absPath
+		}
+	}
+
+	// Debug output if verbose
+	if os.Getenv("SAGESCAN_VERBOSE") == "true" {
+		fmt.Fprintf(os.Stderr, "Python path: %s\n", pythonPath)
+		fmt.Fprintf(os.Stderr, "Engine path: %s\n", enginePath)
+	}
+
+	cmd := exec.CommandContext(ctx, pythonPath, enginePath)
 	cmd.Env = append(os.Environ(), "PYTHONUNBUFFERED=1")
 	cmd.Stdin = bytes.NewReader(payloadBytes)
 
@@ -143,6 +167,14 @@ func (e *Engine) RunCommand(ctx context.Context, commandName string, payload int
 		if ctx.Err() == context.Canceled {
 			return nil, fmt.Errorf("python engine execution canceled\nstderr: %s", stderr.String())
 		}
+
+		// Check if it's an ExitError and we have stdout to parse
+		if _, isExitErr := runErr.(*exec.ExitError); isExitErr && stdout.Len() > 0 {
+			if result, parseErr := e.parseOutput(stdout.Bytes()); parseErr == nil {
+				return result, nil // Python engine exited non-zero but gave valid JSON
+			}
+		}
+
 		return &Result{
 			Status: "ERROR",
 			Error:  fmt.Sprintf("execution failed (%v)\nstderr: %s", runErr, stderr.String()),
@@ -240,8 +272,8 @@ func (e *Engine) directRun(config Config) (*Result, error) {
 	args := []string{enginePath, "--config", configPath}
 	if config.LLMModel != "" {
 		args = append(args, "--config-json", fmt.Sprintf(
-			`{"llm_model":%q,"llm_api_key":%q,"llm_max_tokens":%d}`,
-			config.LLMModel, config.LLMAPIKey, config.LLMMaxTokens,
+			`{"llm_model":%q,"llm_api_key":%q,"llm_max_tokens":%d,"llm_base_url":%q,"llm_temperature":%f}`,
+			config.LLMModel, config.LLMAPIKey, config.LLMMaxTokens, config.LLMBaseURL, config.LLMTemperature,
 		))
 	}
 

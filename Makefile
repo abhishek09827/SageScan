@@ -6,9 +6,11 @@ ifeq ($(OS),Windows_NT)
     BINARY     := sagescan.exe
     VENV_PIP   := engine/.venv/Scripts/pip
     VENV_PYTHON:= engine/.venv/Scripts/python
+    PYTHON     := python
 else
     VENV_PIP   := engine/.venv/bin/pip
     VENV_PYTHON:= engine/.venv/bin/python
+    PYTHON     := python3
 endif
 
 VERSION     := $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
@@ -31,12 +33,12 @@ install: build
 # ── Python environment ─────────────────────────────────────────────────────
 setup-python:
 	@echo "🐍 Creating Python virtual environment..."
-	python3 -m venv engine/.venv
-	$(VENV_PIP) install --upgrade pip
+	$(PYTHON) -m venv engine/.venv
+	$(VENV_PYTHON) -m pip install --upgrade pip
 	$(VENV_PIP) install -r engine/requirements.txt
 	$(VENV_PIP) install pytest pytest-cov
 	@echo "✅ Python environment ready: engine/.venv"
-	@echo "   Add venv python to PATH or set SAGESCAN_ENGINE_PYTHON=engine/.venv/bin/python"
+	@echo "   Add venv python to PATH or set SAGESCAN_ENGINE_PYTHON=engine/.venv/Scripts/python"
 
 # ── Data folder ────────────────────────────────────────────────────────────
 data-dir:

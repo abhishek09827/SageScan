@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/sagescan/sagescan/internal/python"
@@ -83,7 +84,19 @@ func (vc *ValidateCommand) Run(cmd *cobra.Command, args []string) error {
 		cfg["baseline"] = vc.GetBaseline()
 	}
 
-	engine := python.NewEngine("python", "")
+	// Use SAGESCAN_PYTHON env var if set, otherwise default to "python"
+	pythonPath := os.Getenv("SAGESCAN_PYTHON")
+	if pythonPath == "" {
+		pythonPath = "python"
+	}
+
+	// Debug output
+	if os.Getenv("SAGESCAN_VERBOSE") == "true" {
+		fmt.Fprintf(os.Stderr, "SAGESCAN_PYTHON env var: %q\n", os.Getenv("SAGESCAN_PYTHON"))
+		fmt.Fprintf(os.Stderr, "Using python path: %q\n", pythonPath)
+	}
+
+	engine := python.NewEngine(pythonPath, "")
 
 	ctx, cancel := context.WithTimeout(context.Background(), vc.GetTimeout())
 	defer cancel()

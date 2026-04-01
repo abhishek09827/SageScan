@@ -197,6 +197,8 @@ def main():
                             api_key=config.get("llm_api_key", ""),
                             model=config.get("llm_model", "gpt-4o"),
                             max_tokens=config.get("llm_max_tokens", 1000),
+                            base_url=config.get("llm_base_url"),
+                            temperature=config.get("llm_temperature", 0.5),
                         )
                         explanations = generator.explain_validation_report(
                             failed_checks, column_contexts

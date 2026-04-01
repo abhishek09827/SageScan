@@ -139,8 +139,10 @@ def run_generate_rules(config: dict) -> dict:
                 "results": []
             }
         model = config.get("llm_model", "gpt-4")
+        base_url = config.get("llm_base_url")
+        temperature = config.get("llm_temperature", 0.3)
         
-        generator = LLMRuleGenerator(api_key=api_key, model=model)
+        generator = LLMRuleGenerator(api_key=api_key, model=model, base_url=base_url, temperature=temperature)
         
         try:
             full_config = generator.generate_full_config(
@@ -210,7 +212,11 @@ def run_check_llm(config: dict) -> dict:
             "results": [],
         }
 
-    client = openai.OpenAI(api_key=api_key)
+    client_kwargs = {"api_key": api_key}
+    base_url = config.get("llm_base_url")
+    if base_url:
+        client_kwargs["base_url"] = base_url
+    client = openai.OpenAI(**client_kwargs)
     TEST_PROMPT = "Reply with exactly the text: SageScan LLM OK"
 
     logger.info("runner=check_llm model=%s status=connecting", model)
@@ -221,7 +227,7 @@ def run_check_llm(config: dict) -> dict:
             model=model,
             messages=[{"role": "user", "content": TEST_PROMPT}],
             max_tokens=20,
-            temperature=0,
+            temperature=config.get("llm_temperature", 0.0),
         )
         latency_ms = round((time.monotonic() - t0) * 1000)
         reply = response.choices[0].message.content.strip()
@@ -256,6 +262,16 @@ def run_check_llm(config: dict) -> dict:
             "results": [],
         }
 
+def run_report(config: dict) -> dict:
+    """
+    Generate a report from validation results.
+    
+    Args:
+        config: Configuration dictionary containing source and rules
+        
+    Returns:
+        Dictionary containing report data
+    """
     from sagescan_engine.core.report import ReportGenerator, ValidationSummary
     from datetime import datetime
     import logging

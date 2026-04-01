@@ -1,0 +1,47 @@
+version: '1.0'
+source:
+  type: csv
+  path: E:\Personal Projects\SageScan\examples\data\titanic.csv
+rules:
+- column: PassengerId
+  checks:
+  - unique: true
+- column: Survived
+  checks:
+  - range:
+      min_value: 0
+      max_value: 1
+- column: Pclass
+  checks:
+  - range:
+      min_value: 1
+      max_value: 3
+- column: Age
+  checks:
+  - null_percentage:
+      max_percentage: 20
+  - range:
+      min_value: 0.42
+      max_value: 80
+- column: SibSp
+  checks:
+  - range:
+      min_value: 0
+      max_value: 8
+- column: Parch
+  checks:
+  - range:
+      min_value: 0
+      max_value: 6
+- column: Fare
+  checks:
+  - range:
+      min_value: 0
+      max_value: 512.3292
+- column: Embarked
+  checks:
+  - null_percentage:
+      max_percentage: 1
+  - regex:
+      pattern: ^[SCQ]$
+business_context: RMS Titanic 1912 .passenger manifest. Used for survival analysis.

@@ -13,8 +13,10 @@ import (
 // CheckLLMCommand implements the sagescan check-llm command
 type CheckLLMCommand struct {
 	*BaseCommand
-	llmAPIKey string
-	llmModel  string
+	llmAPIKey      string
+	llmModel       string
+	llmBaseURL     string
+	llmTemperature float32
 }
 
 // NewCheckLLMCommand creates the check-llm command
@@ -38,6 +40,8 @@ Examples:
 
 	cmd.Flags().StringVar(&clc.llmAPIKey, "llm-api-key", "", "OpenAI-compatible API key (overrides OPENAI_API_KEY env var)")
 	cmd.Flags().StringVar(&clc.llmModel, "llm-model", "gpt-4o", "LLM model to test against")
+	cmd.Flags().StringVar(&clc.llmBaseURL, "llm-base-url", "", "Custom API base URL for self-hosted or local LLMs")
+	cmd.Flags().Float32Var(&clc.llmTemperature, "llm-temperature", 0.0, "Temperature setting for LLM request")
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 		return clc.Run(cmd, args)
@@ -75,11 +79,20 @@ func (clc *CheckLLMCommand) Run(cmd *cobra.Command, args []string) error {
 	cfg := map[string]interface{}{
 		// Minimal source — not used by check_llm command, but required by envelope
 		"source":      map[string]interface{}{"type": "csv", "path": ""},
-		"llm_api_key": apiKey,
-		"llm_model":   clc.llmModel,
+		"llm_api_key":     apiKey,
+		"llm_model":       clc.llmModel,
+		"llm_temperature": clc.llmTemperature,
+	}
+	if clc.llmBaseURL != "" {
+		cfg["llm_base_url"] = clc.llmBaseURL
 	}
 
-	engine := python.NewEngine("python", "")
+	// Use SAGESCAN_PYTHON env var if set, otherwise default to "python"
+	pythonPath := os.Getenv("SAGESCAN_PYTHON")
+	if pythonPath == "" {
+		pythonPath = "python"
+	}
+	engine := python.NewEngine(pythonPath, "")
 	ctx, cancel := context.WithTimeout(context.Background(), clc.GetTimeout())
 	defer cancel()
 
@@ -112,4 +125,3 @@ func (clc *CheckLLMCommand) Run(cmd *cobra.Command, args []string) error {
 
 	return nil
 }
-

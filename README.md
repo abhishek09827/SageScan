@@ -216,10 +216,12 @@ Runs validation and outputs a rich formatted report.
 sagescan generate-rules -i data.csv -o rules.yaml [flags]
 
 Flags:
-  -i, --input string       Input CSV file (required)
-  -o, --output string      Output YAML rules file (required)
-      --llm-model string   LLM model (default: gpt-4o)
-      --llm-api-key string OpenAI API key (or set OPENAI_API_KEY env var)
+  -i, --input string             Input CSV file (required)
+  -o, --output string            Output YAML rules file (required)
+      --llm-model string         LLM model (default: gpt-4o)
+      --llm-api-key string       OpenAI API key (or set OPENAI_API_KEY env var)
+      --llm-base-url string      Custom API base URL for self-hosted or local LLMs
+      --llm-temperature float32  Temperature setting for LLM generation (default: 0.3)
 ```
 
 ### `init`
@@ -272,6 +274,8 @@ rules:
 # llm_api_key: sk-...   (prefer OPENAI_API_KEY env var)
 # llm_model: gpt-4o
 # llm_max_tokens: 2000
+# llm_base_url: http://localhost:11434/v1
+# llm_temperature: 0.3
 ```
 
 ---
@@ -403,6 +407,11 @@ Checks: 5 total | 3 passed | 2 failed
 ```bash
 export OPENAI_API_KEY=sk-...
 ./sagescan generate-rules -i data/users.csv -o rules/users.yaml --context "user registration data"
+```
+
+To use a custom local model like Ollama instead of OpenAI, provide your custom base URL and temperature:
+```bash
+./sagescan generate-rules -i data/users.csv -o rules/users.yaml --llm-model="llama3" --llm-base-url="http://localhost:11434/v1" --llm-temperature=0.8 --llm-api-key="dummy"
 ```
 
 SageScan sends column statistics (not raw data) to the LLM to generate rules — no PII leaves your machine.
