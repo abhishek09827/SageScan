@@ -1,0 +1,11 @@
+include README.md
+include LICENSE
+include Makefile
+include go.mod
+include go.sum
+recursive-include engine *.py
+recursive-include engine *.txt
+recursive-include internal *.go
+recursive-include cmd *.go
+global-exclude __pycache__/*
+global-exclude .venv/*
