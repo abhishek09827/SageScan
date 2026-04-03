@@ -72,7 +72,7 @@ if __name__ == "__main__":
 
 setup(
     name="sagescan-data",
-    version="1.0.5",
+    version="1.0.6",
     description="Production-grade, CLI-first data quality validation for modern data pipelines",
     author="SageScan Contributors",
     long_description=open("README.md", encoding="utf-8").read(),
