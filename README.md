@@ -1,7 +1,7 @@
 # SageScan
 
 > **Production-grade, CLI-first data quality validation for modern data pipelines.**
-[![Hashnode]]( https://ab-blog.hashnode.dev/i-built-a-cli-data-quality-tool-that-goes-beyond-schema-checks-here-s-what-i-learned) 
+[Hashnode]]( https://ab-blog.hashnode.dev/i-built-a-cli-data-quality-tool-that-goes-beyond-schema-checks-here-s-what-i-learned) 
 ![SageScan Terminal Demo](demo.gif)
 
 [![Go Version](https://img.shields.io/badge/Go-1.22+-00ADD8?logo=go)](https://go.dev)
