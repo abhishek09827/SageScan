@@ -280,17 +280,45 @@ def run_report(config: dict) -> dict:
     try:
         val_report = run_validation(config)
 
+        from sagescan_engine.core.report import ColumnResult
+        from sagescan_engine.validators.base import ValidationResultDetail, ValidationResult
+
+        column_results = {}
+        for r in val_report.get("results", []):
+            c_name = r.get("column", "unknown")
+            if c_name not in column_results:
+                column_results[c_name] = {
+                    "column": c_name, "passed": True, 
+                    "total_checks": 0, "failed_checks": 0, "results": []
+                }
+            cr = column_results[c_name]
+            cr["total_checks"] += 1
+            if not r.get("passed", False):
+                cr["passed"] = False
+                cr["failed_checks"] += 1
+            cr["results"].append(ValidationResultDetail(
+                column=c_name, check_type=r.get("check_type", r.get("check", "")),
+                result=ValidationResult.PASS if r.get("passed") else ValidationResult.FAIL,
+                passed=r.get("passed", False),
+                failed_rows=r.get("failed_rows", []),
+                failed_values=r.get("failed_values", []),
+                message=r.get("message", "")
+            ))
+            
+        columns_list = [ColumnResult(**v) for v in column_results.values()]
+
         summary = ValidationSummary(
             status=val_report.get("status", "FAIL"),
             context=config.get("context", ""),
-            total_columns=0,
+            total_columns=len(columns_list),
             total_checks=val_report.get("summary", {}).get("total", 0),
             passed_checks=val_report.get("summary", {}).get("passed", 0),
             failed_checks=val_report.get("summary", {}).get("failed", 0),
             pass_rate=val_report.get("summary", {}).get("pass_rate", 0.0),
             duration_seconds=0.0,
             start_time=datetime.now(),
-            end_time=datetime.now()
+            end_time=datetime.now(),
+            columns=columns_list
         )
         generator = ReportGenerator(summary)
         cli_report = generator.generate_cli()

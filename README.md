@@ -2,9 +2,11 @@
 
 > **Production-grade, CLI-first data quality validation for modern data pipelines.**
 
+![SageScan Terminal Demo](demo.gif)
+
 [![Go Version](https://img.shields.io/badge/Go-1.22+-00ADD8?logo=go)](https://go.dev)
 [![Python Version](https://img.shields.io/badge/Python-3.9+-3776AB?logo=python)](https://python.org)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![PyPI version](https://badge.fury.io/py/sagescan-data.svg)](https://pypi.org/project/sagescan-data/)
 
 SageScan combines a **Go CLI** for fast, scriptable orchestration with a **Python engine** for rich statistical validation — connected via a clean JSON bridge over stdin/stdout.
 
@@ -77,61 +79,40 @@ SageScan helps you catch those failures before they reach production.
 
 ## Installation
 
-### Prerequisites
-
-| Tool | Minimum Version |
-|------|----------------|
-| Go | 1.22 |
-| Python | 3.9 |
-| make | any |
-
----
-
-### Step 1 — Clone the repo
+Install SageScan effortlessly via PyPI. This will automatically bundle the compiled Go CLI alongside the Python statistical validations!
 
 ```bash
-git clone https://github.com/sagescan/sagescan.git
-cd sagescan
+pip install sagescan-data[all]
 ```
 
-### Step 2 — Set up the Python engine
+*(You must have a valid Python 3.9+ runtime to execute the pipeline).*
 
+Verify your installation globally:
 ```bash
-make setup-python
+sagescan --version
 ```
 
-This creates `engine/.venv` and installs all dependencies (pandas, pydantic, scipy, pyarrow …).
+### Advanced Setup (From Source)
 
-### Step 3 — Build the CLI binary
+For contributors or teams who want to build the Go binary and harness the raw codebase directly instead of using pip:
 
-```bash
-make build
-```
-
-This produces a `./sagescan` binary in the project root.
-
-### Step 4 — (Optional) Install globally
-
-```bash
-make install
-```
-
-Installs the binary to `~/.local/bin/sagescan`.  
-Add `~/.local/bin` to your PATH if not already there:
-
-```bash
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc
-```
-
-### Step 5 — Point SageScan at the Python engine
-
-When running outside the project directory, set this environment variable:
-
-```bash
-export SAGESCAN_ENGINE_PATH=/path/to/sagescan/engine/main.py
-```
-
-Or always run from the project root.
+1. **Clone the repo**
+   ```bash
+   git clone https://github.com/sagescan/sagescan.git
+   cd sagescan
+   ```
+2. **Setup the local Python Engine**
+   ```bash
+   make setup-python
+   ```
+3. **Compile the Go CLI natively**
+   ```bash
+   make build
+   ```
+4. **Use your local binary** instead of the global pip command:
+   ```bash
+   ./sagescan --help
+   ```
 
 ---
 
@@ -147,16 +128,16 @@ user_id,age,email,status
 EOF
 
 # 2. Initialise a config
-./sagescan init --output rules.yaml
+sagescan init --output rules.yaml
 
 # 3. Edit rules.yaml to match your columns, then run:
-./sagescan validate rules.yaml
+sagescan validate rules.yaml
 
 # 4. Get JSON output (great for CI / downstream processing)
-./sagescan validate rules.yaml --output json
+sagescan validate rules.yaml --output json
 
 # 5. Fail CI pipeline on any violation
-./sagescan validate rules.yaml --fail-fast
+sagescan validate rules.yaml --fail-fast
 ```
 
 ---
@@ -320,7 +301,7 @@ user_id,age,email,status
 **Run:**
 
 ```bash
-./sagescan validate examples/basic_rules.yaml
+sagescan validate examples/basic_rules.yaml
 ```
 
 **Output:**
@@ -344,7 +325,7 @@ Checks: 5 total | 3 passed | 2 failed
 **JSON output mode:**
 
 ```bash
-./sagescan validate examples/basic_rules.yaml --output json
+sagescan validate examples/basic_rules.yaml --output json
 ```
 
 ```json
@@ -406,12 +387,12 @@ Checks: 5 total | 3 passed | 2 failed
 
 ```bash
 export OPENAI_API_KEY=sk-...
-./sagescan generate-rules -i data/users.csv -o rules/users.yaml --context "user registration data"
+sagescan generate-rules -i data/users.csv -o rules/users.yaml --context "user registration data"
 ```
 
 To use a custom local model like Ollama instead of OpenAI, provide your custom base URL and temperature:
 ```bash
-./sagescan generate-rules -i data/users.csv -o rules/users.yaml --llm-model="llama3" --llm-base-url="http://localhost:11434/v1" --llm-temperature=0.8 --llm-api-key="dummy"
+sagescan generate-rules -i data/users.csv -o rules/users.yaml --llm-model="llama3" --llm-base-url="http://localhost:11434/v1" --llm-temperature=0.8 --llm-api-key="dummy"
 ```
 
 SageScan sends column statistics (not raw data) to the LLM to generate rules — no PII leaves your machine.
@@ -548,8 +529,4 @@ make test
 - Keep `engine/main.py` stdout clean — only JSON, nothing else
 - Document new check types in this README
 
----
 
-## License
-
-MIT © SageScan Contributors

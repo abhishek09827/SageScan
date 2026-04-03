@@ -1,0 +1,30 @@
+version: "1.0"
+
+source:
+  type: parquet
+  path: examples/data/taxi_jan2024.parquet
+
+
+
+rules:
+  - column: fare_amount
+    checks:
+      - type: z_score
+        value: 4.0
+      - type: min_value
+        value: 0.0
+
+  - column: trip_distance
+    checks:
+      - type: min_value
+        value: 0.1
+
+  - column: passenger_count
+    checks:
+      - type: max_value
+        value: 10.0
+
+  - column: payment_type
+    checks:
+      - type: allowed_values
+        values: [1, 2, 3, 4]

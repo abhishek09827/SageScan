@@ -9,3 +9,6 @@ recursive-include internal *.go
 recursive-include cmd *.go
 global-exclude __pycache__/*
 global-exclude .venv/*
+prune engine/.venv
+prune build_env
+prune venv_test

@@ -87,65 +87,65 @@ class ReportGenerator:
         self.summary = summary
     
     def generate_cli(self) -> str:
-        """Generate a human-readable CLI summary."""
-        lines = []
+        """Generate a human-readable CLI summary using rich."""
+        from rich.console import Console
+        from rich.table import Table
+        from rich.panel import Panel
+        from rich.text import Text
+        from rich import box
+        import io
+
+        buf = io.StringIO()
+        console = Console(file=buf, force_terminal=True, color_system="truecolor", width=100)
+
+        status_color = "green" if self.summary.status == "PASS" else "red"
+        title = Text(f"SageScan Validation Report: {self.summary.context or 'General'}", style="bold white")
         
-        # Header
-        lines.append("=" * 80)
-        lines.append(f" VALIDATION REPORT: {self.summary.context or 'SageScan Validation' }")
-        lines.append("=" * 80)
-        lines.append(f" Status: {self.summary.status}")
-        lines.append(f" Duration: {self.summary.duration_seconds:.2f}s")
-        lines.append(f" Start: {self.summary.start_time.strftime('%Y-%m-%d %H:%M:%S')}")
-        lines.append(f" End: {self.summary.end_time.strftime('%Y-%m-%d %H:%M:%S')}")
-        lines.append()
+        summary_table = Table(box=box.SIMPLE, show_header=False, padding=(0, 2))
+        summary_table.add_column("Key", style="cyan")
+        summary_table.add_column("Value", style="bold white")
         
-        # Summary Statistics
-        lines.append("-" * 80)
-        lines.append("SUMMARY")
-        lines.append("-" * 80)
-        lines.append(f"  Columns: {self.summary.total_columns}/{self.summary.total_columns}")
-        lines.append(f"  Total Checks: {self.summary.total_checks}")
-        lines.append(f"  Passed: {self.summary.passed_checks}")
-        lines.append(f"  Failed: {self.summary.failed_checks}")
-        lines.append(f"  Pass Rate: {self.summary.pass_rate:.2f}%")
-        lines.append()
+        summary_table.add_row("Status", Text(self.summary.status, style=f"bold {status_color}"))
+        summary_table.add_row("Duration", f"{self.summary.duration_seconds:.2f}s")
+        summary_table.add_row("Columns", f"{self.summary.total_columns}")
         
-        # Column Details
-        lines.append("-" * 80)
-        lines.append("COLUMN DETAILS")
-        lines.append("-" * 80)
-        
-        for col_result in self.summary.columns:
-            status = "✓ PASS" if col_result.passed else "✗ FAIL"
-            lines.append(f"\n{col_result.column}: {status}")
-            if col_result.description:
-                lines.append(f"  Description: {col_result.description}")
-            if col_result.tags:
-                lines.append(f"  Tags: {', '.join(col_result.tags)}")
-            lines.append(f"  Checks: {col_result.total_checks} total, {col_result.failed_checks} failed")
-            
-            # Show failed checks
-            if col_result.failed_checks > 0:
-                lines.append(f"  Failed checks:")
-                for result in col_result.results:
-                    if not result.passed:
-                        lines.append(f"    - {result.check_type}: {result.message}")
-        
-        # Errors
+        checks_text = f"[green]{self.summary.passed_checks}[/green] passed / [red]{self.summary.failed_checks}[/red] failed"
+        summary_table.add_row("Checks", checks_text)
+        summary_table.add_row("Pass Rate", f"{self.summary.pass_rate:.1f}%")
+
+        console.print(Panel(summary_table, title=title, border_style=status_color, padding=(1, 2)))
+
+        if self.summary.llm_explanations:
+            console.print("\n[bold magenta]🧠 AI Explanations:[/bold magenta]")
+            for key, explanation in self.summary.llm_explanations.items():
+                console.print(f"  [cyan]• {key}[/cyan]: {explanation}")
+
+        if self.summary.columns:
+            console.print("\n[bold white]Column Details:[/bold white]")
+            columns_table = Table(box=box.ROUNDED, expand=True, header_style="bold cyan")
+            columns_table.add_column("Column", style="bold white", width=25)
+            columns_table.add_column("Status", width=10)
+            columns_table.add_column("Failed Checks", style="red")
+
+            for col in self.summary.columns:
+                status_txt = "[green]✓ PASS[/green]" if col.passed else "[bold red]✗ FAIL[/bold red]"
+                
+                fails = []
+                for res in col.results:
+                    if not res.passed:
+                        fails.append(f"{res.check_type}: {res.message}")
+                
+                fails_str = "\n".join(fails) if fails else "-"
+                columns_table.add_row(col.column, status_txt, fails_str)
+                
+            console.print(columns_table)
+
         if self.summary.errors:
-            lines.append()
-            lines.append("-" * 80)
-            lines.append("ERRORS")
-            lines.append("-" * 80)
-            for error in self.summary.errors:
-                lines.append(f"  • {error}")
-        
-        # Footer
-        lines.append()
-        lines.append("=" * 80)
-        
-        return "\n".join(lines)
+            console.print("\n[bold red]System Errors:[/bold red]")
+            for err in self.summary.errors:
+                console.print(f"  [red]• {err}[/red]")
+
+        return buf.getvalue()
     
     def generate_json(self, pretty: bool = True) -> str:
         """Generate a JSON report."""

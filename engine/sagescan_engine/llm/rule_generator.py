@@ -132,6 +132,17 @@ Return a valid YAML configuration for SageScan with a single top-level "rules" k
 - psi: Population Stability Index (use for drift detection)
 - ks_test: Distribution comparison (use for comparing to reference)
 
+## Example Structure
+```yaml
+rules:
+  - column: "age"
+    checks:
+      - type: "not_null"
+      - type: "min_value"
+        value: 0
+      - type: "z_score"
+        value: 3.5
+```
 """)
 
         # Cap columns to avoid context-window overflow

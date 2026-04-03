@@ -105,3 +105,15 @@ rules.yaml
 *.log
 coverage.out
 *.out
+
+# Media & Demo Artifacts
+*.cast
+demo_large.cast
+agg
+
+# Pipeline & Dist environments
+build_env/
+venv_test/
+build/
+dist/
+demo.tape

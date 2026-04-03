@@ -64,10 +64,6 @@ func (grc *GenerateRulesCommand) Run(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("input file is required (--input or -i flag)")
 	}
 
-	if err := ValidateConfig(grc.inputFile); err != nil {
-		return fmt.Errorf("input file error: %w", err)
-	}
-
 	if grc.outputFile == "" {
 		return fmt.Errorf("output file is required (--output or -o flag)")
 	}
@@ -90,9 +86,14 @@ func (grc *GenerateRulesCommand) Run(cmd *cobra.Command, args []string) error {
 	fmt.Printf("🧠 Model:   %s\n", grc.llmModel)
 	fmt.Println(strings.Repeat("─", 60))
 
+	sourceType := "csv"
+	if strings.HasSuffix(grc.inputFile, ".parquet") {
+		sourceType = "parquet"
+	}
+
 	cfg := map[string]interface{}{
 		"source": map[string]interface{}{
-			"type": "csv",
+			"type": sourceType,
 			"path": grc.inputFile,
 		},
 		"output_file": grc.outputFile,

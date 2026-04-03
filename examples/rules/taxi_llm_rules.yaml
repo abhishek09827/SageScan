@@ -1,0 +1,107 @@
+version: '1.0'
+source:
+  type: parquet
+  path: E:\Personal Projects\SageScan\examples\data\taxi_jan2024.parquet
+rules:
+- column: VendorID
+  checks:
+  - type: range
+    min: 1
+    max: 6
+  - type: unique
+- column: tpep_pickup_datetime
+  checks:
+  - type: not_null
+- column: tpep_dropoff_datetime
+  checks:
+  - type: not_null
+- column: passenger_count
+  checks:
+  - type: range
+    min: 0
+    max: 9
+  - type: null_percentage
+    value: 5
+- column: trip_distance
+  checks:
+  - type: range
+    min: 0
+    max: 100
+- column: RatecodeID
+  checks:
+  - type: range
+    min: 1
+    max: 6
+  - type: null_percentage
+    value: 5
+- column: store_and_fwd_flag
+  checks:
+  - type: regex
+    value: ^[NY]$
+  - type: null_percentage
+    value: 5
+- column: PULocationID
+  checks:
+  - type: range
+    min: 1
+    max: 265
+- column: DOLocationID
+  checks:
+  - type: range
+    min: 1
+    max: 265
+- column: payment_type
+  checks:
+  - type: range
+    min: 0
+    max: 4
+- column: fare_amount
+  checks:
+  - type: range
+    min: 0
+    max: 1000
+- column: extra
+  checks:
+  - type: range
+    min: 0
+    max: 10
+- column: mta_tax
+  checks:
+  - type: range
+    min: 0
+    max: 0.5
+- column: tip_amount
+  checks:
+  - type: range
+    min: 0
+    max: 100
+- column: tolls_amount
+  checks:
+  - type: range
+    min: 0
+    max: 50
+- column: improvement_surcharge
+  checks:
+  - type: range
+    min: 0
+    max: 1
+- column: total_amount
+  checks:
+  - type: range
+    min: 0
+    max: 1000
+- column: congestion_surcharge
+  checks:
+  - type: range
+    min: 0
+    max: 2.5
+  - type: null_percentage
+    value: 5
+- column: Airport_fee
+  checks:
+  - type: range
+    min: 0
+    max: 1.75
+  - type: null_percentage
+    value: 5
+business_context: NYC taxi trip data

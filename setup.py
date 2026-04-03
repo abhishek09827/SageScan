@@ -71,10 +71,12 @@ if __name__ == "__main__":
             f.write("\n")
 
 setup(
-    name="sagescan",
-    version="1.0.0",
+    name="sagescan-data",
+    version="1.0.5",
     description="Production-grade, CLI-first data quality validation for modern data pipelines",
     author="SageScan Contributors",
+    long_description=open("README.md", encoding="utf-8").read(),
+    long_description_content_type="text/markdown",
     packages=[
         "sagescan_engine", 
         "sagescan_engine.core", 
@@ -96,6 +98,7 @@ setup(
         "pydantic>=2.4.0",
         "PyYAML>=6.0.1",
         "pandas>=2.0.0",
+        "rich>=13.0.0",
         "numpy>=1.26.0",
         "scipy>=1.11.0",
     ],
