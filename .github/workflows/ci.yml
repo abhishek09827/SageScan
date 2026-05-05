@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      SAGESCAN_ENGINE_PATH: ${{ github.workspace }}/engine/main.py
+      SAGESCAN_PYTHON: python
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: |
+            engine/requirements.txt
+            benchmarks/requirements_bench.txt
+
+      - name: Install Python dependencies
+        working-directory: engine
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Build CLI
+        run: go build -o sagescan ./cmd/sagescan/main.go
+
+      - name: Run Go tests
+        run: go test ./...
+
+      - name: Run Python tests
+        working-directory: engine
+        run: |
+          python -m pytest \
+            sagescan_engine/validators/test_implementations.py \
+            sagescan_engine/rules/test_models.py \
+            -v --tb=short
