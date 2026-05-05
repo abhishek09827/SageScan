@@ -162,7 +162,10 @@ class ValidationPipeline:
                 # Handle both Pydantic models and dictionaries
                 if hasattr(check, 'type'):
                     check_type = check.type
-                    parameters = {k: v for k, v in check.__dict__.items() if k != "type"}
+                    if hasattr(check, "model_dump"):
+                        parameters = check.model_dump(exclude={"type"}, exclude_none=True)
+                    else:
+                        parameters = {k: v for k, v in check.__dict__.items() if k != "type"}
                 else:
                     check_type = check.get("type")
                     parameters = {k: v for k, v in check.items() if k != "type"}

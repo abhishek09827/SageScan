@@ -1,0 +1,26 @@
+version: 1
+rules:
+  - column: id
+    check: unique
+  - column: email
+    check: regex
+    pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+  - column: amount
+    check: range
+    min: 50
+    max: 150
+  - column: amount
+    check: z_score
+    threshold: 3.0
+  - column: status
+    check: not_null
+  - column: status
+    check: allowed_values
+    values: ['active', 'inactive']
+  - column: category
+    check: allowed_values
+    values: ['A', 'B', 'C', 'D']
+  - column: score
+    check: range
+    min: 0
+    max: 1

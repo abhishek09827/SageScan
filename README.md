@@ -27,8 +27,9 @@ SageScan combines a **Go CLI** for fast, scriptable orchestration with a **Pytho
 9. [Big-Data Readiness](#big-data-readiness)
 10. [AI Layer (Optional)](#ai-layer-optional)
 11. [Testing](#testing)
-12. [Roadmap](#roadmap)
-13. [Contributing](#contributing)
+12. [Benchmarks](#benchmarks)
+13. [Roadmap](#roadmap)
+14. [Contributing](#contributing)
 
 ---
 
@@ -428,6 +429,18 @@ cd engine && python -m pytest --cov=sagescan_engine --cov-report=term-missing
 - `engine/sagescan_engine/rules/test_models.py` — Pydantic schema validation
 - `internal/cli/base_test.go` — CLI config loading
 - `internal/python/engine_test.go` — subprocess communication
+
+---
+
+## Benchmarks
+
+Benchmark scripts, rules, and generated outputs live in [`benchmarks/`](benchmarks/).
+
+- [`benchmarks/README_benchmarks.md`](benchmarks/README_benchmarks.md) explains how to run the suite and what each benchmark measures.
+- [`results/benchmark_report.md`](results/benchmark_report.md) contains the latest formatted benchmark report.
+- [`results/benchmark_raw.json`](results/benchmark_raw.json) contains the raw numbers captured by the runner.
+
+The benchmark harness follows the repository's actual CLI contract, which expects a full config with `source.path` and `rules` together rather than a bare rules file.
 
 ---
 

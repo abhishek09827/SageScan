@@ -1,0 +1,6 @@
+psutil
+pandas
+numpy
+faker
+great_expectations
+tabulate

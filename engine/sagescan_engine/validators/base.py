@@ -112,7 +112,7 @@ class BaseValidator:
             return ""
 
         n = len(failed_rows)
-        message = message_template.format(n=n)
+        message = message_template.replace("{n}", str(n))
         
         # Add sample values if available
         if failed_values and len(failed_values) > 0:
