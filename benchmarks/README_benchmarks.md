@@ -56,7 +56,3 @@ Compares SageScan against Great Expectations on equivalent checks over the same 
 ### SS-5: Memory Safety on Large Files
 
 Creates a large CSV in chunks, validates it, and records the peak memory seen during validation.
-
-## Output format
-
-The generated report is written in markdown so it can be pasted directly into a README, wiki, or resume draft.
