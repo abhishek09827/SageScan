@@ -1,5 +1,4 @@
 # SageScan
-
 SageScan is a CLI for validating tabular data with YAML rules and a Python validation engine.
 It is designed for local files, CI pipelines, and repeatable data quality checks on CSV and Parquet inputs.
 [![Hashnode]]( https://ab-blog.hashnode.dev/i-built-a-cli-data-quality-tool-that-goes-beyond-schema-checks-here-s-what-i-learned) 
