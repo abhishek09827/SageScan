@@ -5,6 +5,7 @@ It is designed for local files, CI pipelines, and repeatable data quality checks
 ![SageScan Terminal Demo](demo.gif)
 ## What it does
 
+
 - Validates schema and data quality rules from a single config file
 - Runs statistical checks such as z-score, KS test, and PSI
 - Supports chunked CSV reads for larger files
